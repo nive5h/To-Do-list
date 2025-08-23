@@ -58,7 +58,7 @@
       outline: none;
     }
 
-    #add {
+    #addBtn {
       background: #00BFA6;
       border: none;
       border-radius: 50%;
@@ -70,7 +70,7 @@
       transition: background 0.3s;
     }
 
-    #add:hover {
+    #addBtn:hover {
       background: #30f1d7;
     }
 
@@ -122,57 +122,79 @@
   </style>
 </head>
 <body>
-  <section id="container">
+  <div id="container">
     <h2>To-Do List 📝</h2>
     <div class="input-section">
       <input type="text" id="inp" placeholder="Enter a task">
-      <button id="add">+</button>
+      <button id="addBtn">+</button>
     </div>
-    <ol id="listss"></ol>
-    <p id="emptyMessage" class="empty-message">No tasks yet. Add one!</p>
-  </section>
+    <ol id="taskList"></ol>
+    <p id="emptyMsg" class="empty-message">No tasks yet. Add one!</p>
+  </div>
 
   <script>
-    const input = document.getElementById('inp');
-    const addBtn = document.getElementById('add');
-    const list = document.getElementById('listss');
-    const emptyMsg = document.getElementById('emptyMessage');
+    const inp = document.getElementById("inp");
+    const addBtn = document.getElementById("addBtn");
+    const taskList = document.getElementById("taskList");
+    const emptyMsg = document.getElementById("emptyMsg");
 
-    function updateEmptyMessage() {
-      emptyMsg.style.display = list.children.length === 0 ? 'block' : 'none';
+    // Load tasks from localStorage
+    function loadTasks() {
+      taskList.innerHTML = localStorage.getItem("tasks") || "";
+      updateEmptyMsg();
+      attachDeleteEvents();
     }
 
+    // Save tasks to localStorage
+    function saveTasks() {
+      localStorage.setItem("tasks", taskList.innerHTML);
+    }
+
+    // Add a new task
     function addTask() {
-      const task = input.value.trim();
-      if (!task) {
+      const task = inp.value.trim();
+      if (task === "") {
         alert("Please enter a task");
         return;
       }
 
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <span>${task}</span>
-        <button class="delete-btn" title="Delete task">🗑️</button>
-      `;
+      const li = document.createElement("li");
+      li.innerHTML = `<span>${task}</span> <button class="delete-btn">🗑️</button>`;
+      taskList.appendChild(li);
+      inp.value = "";
 
-      li.querySelector('.delete-btn').addEventListener('click', () => {
-        if (confirm("Delete this task?")) {
-          li.remove();
-          updateEmptyMessage();
-        }
-      });
-
-      list.appendChild(li);
-      input.value = '';
-      updateEmptyMessage();
+      saveTasks();
+      updateEmptyMsg();
+      attachDeleteEvents();
     }
 
-    addBtn.addEventListener('click', addTask);
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') addTask();
+    // Add delete functionality
+    function attachDeleteEvents() {
+      const deleteBtns = document.querySelectorAll(".delete-btn");
+      deleteBtns.forEach(btn => {
+        btn.onclick = function() {
+          if (confirm("Delete this task?")) {
+            btn.parentElement.remove();
+            saveTasks();
+            updateEmptyMsg();
+          }
+        };
+      });
+    }
+
+    // Show/Hide empty message
+    function updateEmptyMsg() {
+      emptyMsg.style.display = taskList.children.length === 0 ? "block" : "none";
+    }
+
+    // Event listeners
+    addBtn.onclick = addTask;
+    inp.addEventListener("keypress", e => {
+      if (e.key === "Enter") addTask();
     });
 
-    updateEmptyMessage();
+    // Load saved tasks
+    loadTasks();
   </script>
 </body>
 </html>
